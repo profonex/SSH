@@ -7,7 +7,7 @@ read -p 'Gateway: ' gateway
 sed "s@iface eth0 inet dhcp@iface eth0 inet static@g" -i /etc/network/interfaces
 
 cat >> /etc/network/interfaces << EOF
-address $ip-address
+address $ip_address
 netmask $mask
 gateway $gateway
 EOF
