@@ -1,5 +1,7 @@
 #!/bin/sh
 
+rm -R /usr/src/fusionpbx-install.sh
+
 read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
 
