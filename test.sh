@@ -2,8 +2,8 @@
 
 rm -R /usr/src/fusionpbx-install.sh
 
-read -p "Node Name: " nodename
-read -p "Database Password: " dbasepass
+#read -p "Node Name: " nodename
+#read -p "Database Password: " dbasepass
 
 apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian
 
