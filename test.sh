@@ -9,7 +9,7 @@ apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-y
 
 sed "s@echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main' >> /etc/apt/sources.list.d/pgdg.list@#echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main' >> /etc/apt/sources.list.d/pgdg.list@g" -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed "s@wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -@#wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -@g" -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
-sed "s/\apt-get update && apt-get upgrade -y\/#nope/" -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
+sed "s/\<apt-get update && apt-get upgrade -y\>/#nope/" -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed "s@apt-get install -y --force-yes sudo postgresql@#nope@" -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
 sed "s@#echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main'  >> /etc/apt/sources.list.d/postgresql.list@echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main'  >> /etc/apt/sources.list.d/postgresql.list@g" -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
