@@ -13,8 +13,9 @@ gateway $gateway
 EOF
 
 sed "s@127.0.1.1@127.0.0.1@g" -i /etc/hosts
-
-cat > /etc/resolv.conf < EOF
+rm /etc/resolv.conf
+touch /etc/resolv.conf
+cat >> /etc/resolv.conf << EOF
 nameserver 4.2.2.2
 nameserver 8.8.8.8
 EOF
