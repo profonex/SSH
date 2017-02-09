@@ -11,7 +11,7 @@ apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-y
 #sed "s@wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -@#wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -@g" -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 #sed 's/\<apt-get update && apt-get upgrade -y\>/#nope/g' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 #sed 's/\<apt-get install -y --force-yes sudo postgresql\>/#nope/g' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
-sed '16,19d' /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
+sed '16,19d' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
 sed "s@#echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main'  >> /etc/apt/sources.list.d/postgresql.list@echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main'  >> /etc/apt/sources.list.d/postgresql.list@g" -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed "s@#echo 'deb http://packages.2ndquadrant.com/bdr/apt/ jessie-2ndquadrant main' >> /etc/apt/sources.list.d/2ndquadrant.list@echo 'deb http://packages.2ndquadrant.com/bdr/apt/ jessie-2ndquadrant main' >> /etc/apt/sources.list.d/2ndquadrant.list@g" -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
