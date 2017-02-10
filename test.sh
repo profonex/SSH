@@ -4,6 +4,6 @@ read -p "Total Number of Nodes: " tnode
 
 for i in 'seq $tnode
 do
-  read -p "Node $i IP Address: " $i_ip
+  read -p "Node $i IP Address: " ip
 done
-echo $i_ip
+echo "$i $ip"
