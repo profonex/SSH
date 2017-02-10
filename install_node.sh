@@ -8,6 +8,18 @@ apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-y
 sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
+read -p "Total Number of Nodes: " totalnode
+read -p "This Nodes IP Address: " ip1
+
+nodenumber=$(($totalnode-1))
+c=2
+for i in $(seq $totalnode);
+do
+    read -p "Node $(($i+1)) IP Address: " ipadd;
+    eval "ip$c=$ipadd";
+    c=$((c+1));
+done
+
 sed -i /etc/postgresql/9.4/main/postgresql.conf -e s:'snakeoil.key:snakeoil-postgres.key:'
 cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/private/ssl-cert-snakeoil-postgres.key
 chown postgres:postgres /etc/ssl/private/ssl-cert-snakeoil-postgres.key
