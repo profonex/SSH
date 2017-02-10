@@ -1,8 +1,9 @@
 #!/bin/sh
 
-read -p "Node Name: " nodename
+read -p "Total Number of Nodes: " tnode
 
-for i in {$nodename}
+for i in 'seq $tnode
 do
-  echo "test $i times"
+  read -p "Node $i IP Address: " $i_ip
 done
+echo $i_ip
