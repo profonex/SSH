@@ -2,8 +2,11 @@
 
 read -p "Total Number of Nodes: " tnode
 
-for i in 'seq $tnode'
+max=$tnode
+
+for i in 'seq $max'
 do
   read -p "Node $i IP Address: " ip
+  echo "$i $ip"
 done
-echo "$i $ip"
+
