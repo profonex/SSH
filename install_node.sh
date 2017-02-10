@@ -13,12 +13,19 @@ read -p "This Nodes IP Address: " ip1
 
 nodenumber=$(($totalnode-1))
 c=2
-for i in $(seq $totalnode);
+for i in $(seq $nodenumber);
 do
     read -p "Node $(($i+1)) IP Address: " ipadd;
     eval "ip$c=$ipadd";
     c=$((c+1));
 done
+
+for i in 'seq $totalnode'
+do
+    iptables -A INPUT -j ACCEPT -p tcp --dport 5432 -s $ip$i/32
+    iptables -A INPUT -j ACCEPT -p tcp --dport 8080 -s $ip$i/32
+    iptables -A INPUT -j ACCEPT -p tcp --dport 4444 -s $ip$i/32
+
 
 sed -i /etc/postgresql/9.4/main/postgresql.conf -e s:'snakeoil.key:snakeoil-postgres.key:'
 cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/private/ssl-cert-snakeoil-postgres.key
@@ -105,5 +112,4 @@ chown -R www-data:www-data /var/www/fusionpbx/app/bdr
 mkdir -p /etc/fusionpbx/resources/templates/
 cp -R /var/www/fusionpbx/resources/templates/provision /etc/fusionpbx/resources/templates
 chown -R www-data:www-data /etc/fusionpbx
-
 
