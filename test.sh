@@ -1,7 +1,10 @@
 #!/bin/bash
 
+read -p "number: " node
 
-echo 'Tell me how many hosts you have ?'
-echo -n ' : '
-read COUNTHOSTS
 
+COUNTER=0
+  while [  $COUNTER -lt $node ]; do
+    echo The counter is $COUNTER
+    let COUNTER=COUNTER+1 
+  done
