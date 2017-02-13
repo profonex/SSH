@@ -1,14 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-read -p "Total Number of Nodes: " tnode
 
-max=$tnode
+echo 'Tell me how many hosts you have ?'
+echo -n ' : '
+read COUNTHOSTS
 
-for i in `seq $max`
-do
-    read -p "Node $i IP Address: " ipadd
-    nodenum=$i
-    ip=$ipadd
-    nodeip=
-    echo "$i$ipnode" "$ip" "$i"
-done
