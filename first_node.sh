@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
@@ -9,23 +9,28 @@ sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
 read -p "Total Number of Nodes: " totalnode
-read -p "This Nodes IP Address: " ip1
+read -p "This Nodes IP Address: " thisip
+
+ip[1]=$thisip
 
 nodenumber=$(($totalnode-1))
 c=2
 for i in $(seq $nodenumber);
 do
     read -p "Node $(($i+1)) IP Address: " ipadd;
-    eval "ip$c=$ipadd";
+    eval ip[$(($i+1))]=$ipadd;
     c=$((c+1));
 done
 
-for i in 'seq $totalnode'
+for j in $(seq $totalnode)
 do
-    iptables -A INPUT -j ACCEPT -p tcp --dport 5432 -s $ip$i/32
-    iptables -A INPUT -j ACCEPT -p tcp --dport 8080 -s $ip$i/32
-    iptables -A INPUT -j ACCEPT -p tcp --dport 4444 -s $ip$i/32
+  #echo "Node $j ipaddress ${ip[$j]}"
+  echo "iptables -A INPUT -j ACCEPT -p tcp --dport 5432 -s ${ip[$j]}/32"
+  echo "iptables -A INPUT -j ACCEPT -p tcp --dport 8080 -s ${ip[$j]}/32"
+  echo "iptables -A INPUT -j ACCEPT -p tcp --dport 4444 -s ${ip[$j]}/32"
+done
 
+dpkg-reconfigure iptables-persistent
 
 sed -i /etc/postgresql/9.4/main/postgresql.conf -e s:'snakeoil.key:snakeoil-postgres.key:'
 cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/private/ssl-cert-snakeoil-postgres.key
