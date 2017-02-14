@@ -19,6 +19,7 @@ done
 read -p "What is the FQDN of this Node: " domainname
 read -p "Username for this Node: " username
 read -p "Password for this Node: " userpass
+read -p "What is your email address: " email
 
 #database details
 database_host=127.0.0.1
