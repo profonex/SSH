@@ -4,6 +4,7 @@ read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
 read -p "Total Number of Nodes: " totalnode
 read -p "This Nodes IP Address: " thisip
+read -p "What is the FQDN on this Node: " domainname
 read -p "Username For this Node: " username
 read -p "Password for this Node: " userpass
 
@@ -124,7 +125,7 @@ cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_schema.php 
 #domain_name=$(hostname -f)
 
 #get the ip address
-domain_name=$(hostname -I | cut -d ' ' -f1)
+domain_name=$domainname
 
 #get a domain_uuid
 domain_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
