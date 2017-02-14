@@ -3,6 +3,11 @@
 read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
 
+#database details
+database_host=127.0.0.1
+database_port=5432
+database_username=fusionpbx
+
 apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian
 
 sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
@@ -22,15 +27,15 @@ do
     c=$((c+1));
 done
 
-for j in $(seq $totalnode)
+for i in $(seq $totalnode)
 do
-  #echo "Node $j ipaddress ${ip[$j]}"
-  echo "iptables -A INPUT -j ACCEPT -p tcp --dport 5432 -s ${ip[$j]}/32"
-  echo "iptables -A INPUT -j ACCEPT -p tcp --dport 8080 -s ${ip[$j]}/32"
-  echo "iptables -A INPUT -j ACCEPT -p tcp --dport 4444 -s ${ip[$j]}/32"
+  iptables -A INPUT -j ACCEPT -p tcp --dport 5432 -s ${ip[$i]}/32
+  iptables -A INPUT -j ACCEPT -p tcp --dport 8080 -s ${ip[$i]}/32
+  iptables -A INPUT -j ACCEPT -p tcp --dport 4444 -s ${ip[$i]}/32
 done
-
-dpkg-reconfigure iptables-persistent
+#answer the questions for iptables persistent
+echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
 
 sed -i /etc/postgresql/9.4/main/postgresql.conf -e s:'snakeoil.key:snakeoil-postgres.key:'
 cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/private/ssl-cert-snakeoil-postgres.key
@@ -61,48 +66,44 @@ max_worker_processes = 20
 #bdr.skip_ddl_replication = off
 EOF
 
+echo "host     all     all     127.0.0.1/32     trust" >> /etc/postgresql/9.4/main/pg_hba.conf
 
-cat >> /etc/postgresql/9.4/main/pg_hba.conf << EOF
-host     all     all     127.0.0.1/32     trust
-hostssl     all     all     138.197.89.130/32     trust
-hostssl     all     all     138.197.89.172/32     trust
-hostssl     replication     postgres     138.197.89.130/32     trust
-hostssl     replication     postgres     138.197.89.172/32     trust
-EOF
+for i in $(seq $totalnode)
+do
+  echo "hostssl     all     all     ${ip[$i]}/32     trust" >> /etc/postgresql/9.4/main/pg_hba.conf
+done
+
+for i in $(seq $totalnode)
+do
+  echo "hostssl     replication     postgres     ${ip[$i]}/32     trust" >> /etc/postgresql/9.4/main/pg_hba.conf
+done
+
 
 systemctl daemon-reload
 systemctl restart postgresql
 
-su postgres
-psql
-ALTER USER fusionpbx WITH PASSWORD '$dbasepass';
-ALTER USER freeswitch WITH PASSWORD '$dbasepass';
+sudo -u postgres psql -c "DROP DATABASE fusionpbx";
+sudo -u postgres psql -c "DROP DATABASE freeswitch";
+sudo -u postgres psql -c "CREATE DATABASE fusionpbx";
+sudo -u postgres psql -c "CREATE DATABASE freeswitch";
+sudo -u postgres psql -c "CREATE ROLE fusionpbx WITH SUPERUSER LOGIN PASSWORD '$dbasepass';"
+sudo -u postgres psql -c "CREATE ROLE freeswitch WITH SUPERUSER LOGIN PASSWORD '$dbasepass';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE fusionpbx to fusionpbx;"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to fusionpbx;"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to freeswitch;"
+psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "CREATE EXTENSION btree_gist;"
+psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "CREATE EXTENSION bdr;"
+psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "SELECT bdr.bdr_group_create(local_node_name := 'node1', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
+psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "SELECT bdr.bdr_node_join_wait_for_ready();"
+psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "CREATE  EXTENSION pgcrypto;"
 
-DROP DATABASE fusionpbx;
-CREATE DATABASE fusionpbx;
-DROP DATABSE freeswitch;
-CREATE DATABASE freeswitch;
-
-\c fusionpbx
-CREATE EXTENSION btree_gist;
-CREATE EXTENSION bdr;
-
-SELECT bdr.bdr_group_join(
-local_node_name := '$nodename',
-node_external_dsn := 'host=138.197.89.172 port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1',
-join_using_dsn := 'host=138.197.89.130 port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1');
-SELECT bdr.bdr_node_join_wait_for_ready();
-
-CREATE  EXTENSION pgcrypto;
 
 \c freeswitch
 create extension btree_gist;
 create extension bdr;
 
-SELECT bdr.bdr_group_join(
-local_node_name := '$nodename',
-node_external_dsn := 'host=138.197.89.172 port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1',
-join_using_dsn := 'host=138.197.89.130 port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1');
+SELECT bdr.bdr_group_create(local_node_name := 'node1',
+node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');
 SELECT bdr.bdr_node_join_wait_for_ready();
 
 create extension pgcrypto;
