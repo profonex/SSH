@@ -8,7 +8,7 @@ database_host=127.0.0.1
 database_port=5432
 database_username=fusionpbx
 
-apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian
+apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian && ./install.sh && rm /etc/fusionpbx/config.php
 
 sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
@@ -78,6 +78,7 @@ do
   echo "hostssl     replication     postgres     ${ip[$i]}/32     trust" >> /etc/postgresql/9.4/main/pg_hba.conf
 done
 
+sed -i /etc/fusionpbx/config.php -e s:"{database_password}:$dbasepass:"
 
 systemctl daemon-reload
 systemctl restart postgresql
@@ -91,24 +92,18 @@ sudo -u postgres psql -c "CREATE ROLE freeswitch WITH SUPERUSER LOGIN PASSWORD '
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE fusionpbx to fusionpbx;"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to fusionpbx;"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to freeswitch;"
-psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "CREATE EXTENSION btree_gist;"
-psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "CREATE EXTENSION bdr;"
-psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "SELECT bdr.bdr_group_create(local_node_name := 'node1', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
-psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "SELECT bdr.bdr_node_join_wait_for_ready();"
-psql --host=$database_host --port=$database_port --username=$database_username --dbname=fusionpbx -c "CREATE  EXTENSION pgcrypto;"
+sudo -u postgres -d fusionpbx psql -c "CREATE EXTENSION btree_gist;"
+sudo -u postgres -d fusionpbx psql -c "CREATE EXTENSION bdr;"
+sudo -u postgres -d fusionpbx psql -c "SELECT bdr.bdr_group_create(local_node_name := 'node1', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
+sudo -u postgres -d fusionpbx psql -c "SELECT bdr.bdr_node_join_wait_for_ready();"
+sudo -u postgres -d fusionpbx psql -c "CREATE  EXTENSION pgcrypto;"
+sudo -u postgres -d freeswitch psql -c "CREATE EXTENSION btree_gist;"
+sudo -u postgres -d freeswitch psql -c "CREATE EXTENSION bdr;"
+sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_group_create(local_node_name := 'node1', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
+sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_node_join_wait_for_ready();"
+sudo -u postgres -d freeswitch psql -c "CREATE  EXTENSION pgcrypto;"
 
 
-\c freeswitch
-create extension btree_gist;
-create extension bdr;
-
-SELECT bdr.bdr_group_create(local_node_name := 'node1',
-node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');
-SELECT bdr.bdr_node_join_wait_for_ready();
-
-create extension pgcrypto;
-\q
-exit
 
 cd /usr/src
 git clone https://github.com/fusionpbx/fusionpbx-apps 
