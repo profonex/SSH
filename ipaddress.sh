@@ -23,3 +23,4 @@ EOF
 
 service networking restart
 
+echo hostname -I
