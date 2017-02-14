@@ -18,8 +18,6 @@ apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-y
 sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
-read -p "Total Number of Nodes: " totalnode
-read -p "This Nodes IP Address: " thisip
 
 ip[1]=$thisip
 
