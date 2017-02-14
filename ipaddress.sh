@@ -21,6 +21,7 @@ nameserver 8.8.8.8
 EOF
 
 
-service networking restart
+service networking stop
+service networking start
 
 echo hostname -I
