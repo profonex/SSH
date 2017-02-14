@@ -4,20 +4,6 @@ read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
 read -p "Total Number of Nodes: " totalnode
 read -p "This Nodes IP Address: " thisip
-read -p "Node IP you want to connect to: " near_node
-read -p "What is the FQDN on this Node: " domainname
-read -p "Username For this Node: " username
-read -p "Password for this Node: " userpass
-
-#database details
-database_host=127.0.0.1
-database_port=5432
-database_username=fusionpbx
-
-apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian && ./install.sh
-
-sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
-sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
 ip[1]=$thisip
 
@@ -29,6 +15,25 @@ do
     eval ip[$(($i+1))]=$ipadd;
     c=$((c+1));
 done
+
+read -p "Node IP you want to connect to: " near_node
+read -p "What is the FQDN on this Node: " domainname
+read -p "Username For this Node: " username
+read -p "Password for this Node: " userpass
+read -p "What is your email address: " email
+
+#database details
+database_host=127.0.0.1
+database_port=5432
+database_username=fusionpbx
+
+apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian
+
+sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
+sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
+
+./install.sh
+
 
 for i in $(seq $totalnode)
 do
