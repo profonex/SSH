@@ -1,6 +1,6 @@
 #!/bin/bash
 
-trap "set +x; sleep 5; set -x" DEBUG
+#trap "set +x; sleep 5; set -x" DEBUG
 
 read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
