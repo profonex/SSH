@@ -32,7 +32,7 @@ apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-y
 sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
- ./install.sh
+ ./install.sh && rm /etc/fusionpbx/config.php
 
 
 for i in $(seq $totalnode)
@@ -86,7 +86,6 @@ do
   echo "hostssl     replication     postgres     ${ip[$i]}/32     trust" >> /etc/postgresql/9.4/main/pg_hba.conf
 done
 
-sed -i /etc/fusionpbx/config.php -e s:"{database_password}:$dbasepass:"
 
 systemctl daemon-reload
 systemctl restart postgresql
@@ -104,7 +103,6 @@ sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION btree_gist;"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION bdr;"
 sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION btree_gist;"
 sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION bdr;"
-#sleep 30
 sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_group_create(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
 sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_node_join_wait_for_ready();"
 #sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION pgcrypto;"
@@ -124,73 +122,9 @@ mkdir -p /etc/fusionpbx/resources/templates/
 cp -R /var/www/fusionpbx/resources/templates/provision /etc/fusionpbx/resources/templates
 chown -R www-data:www-data /etc/fusionpbx
 
-read -n1 -r -p "Press any key to continue..." key
 
-#get the server hostname
-#domain_name=$(hostname -f)
+sh -c 'echo "deb http://linux-packages.getsync.com/btsync/deb btsync non-free" > /etc/apt/sources.list.d/btsync.list'
+wget -qO - https://linux-packages.resilio.com/resilio-sync/key.asc | sudo apt-key add -
+apt-get update
+apt-get install btsync
 
-#get the ip address
-domain_name=$domainname
-
-#get a domain_uuid
-domain_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
-
-#add the domain name
-sudo -u postgres psql -d fusionpbx -c "insert into v_domains (domain_uuid, domain_name, domain_enabled) values('$domain_uuid', '$domain_name', 'true');"
-
-read -n1 -r -p "Press any key to continue..." key
-
-#app defaults
-cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_domains.php
-
-#add the user
-user_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
-user_salt=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
-user_name=$username
-user_password=$userpass
-password_hash=$(php -r "echo md5('$user_salt$user_password');");
-sudo -u postgres psql -d fusionpbx -t -c "insert into v_users (user_uuid, domain_uuid, username, password, salt, user_enabled) values('$user_uuid', '$domain_uuid', '$user_name', '$password_hash', '$user_salt', 'true');"
-
-read -n1 -r -p "Press any key to continue..." key
-
-#get the superadmin group_uuid
-group_uuid=$(psql --host=$database_host --port=$database_port --username=$database_username -t -c "select group_uuid from v_groups where group_name = 'superadmin';");
-group_uuid=$(echo $group_uuid | sed 's/^[[:blank:]]*//;s/[[:blank:]]*$//')
-
-#add the user to the group
-group_user_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
-group_name=superadmin
-sudo -u postgres psql -d fusionpbx -c "insert into v_group_users (group_user_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$group_user_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
-
-read -n1 -r -p "Press any key to continue..." key
-
-#update xml_cdr url, user and password
-xml_cdr_username=$(dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 | sed 's/[=\+//]//g')
-xml_cdr_password=$(dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 | sed 's/[=\+//]//g')
-sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_http_protocol}:http:"
-sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{domain_name}:127.0.0.1:"
-sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_project_path}::"
-sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_user}:$xml_cdr_username:"
-sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_pass}:$xml_cdr_password:"
-
-#app defaults
-cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_domains.php
-
-#restart freeswitch
-/bin/systemctl daemon-reload
-/bin/systemctl restart freeswitch
-
-#welcome message
-echo ""
-echo ""
-verbose "Installation has completed."
-echo ""
-echo "   Use a web browser to login."
-echo "      domain name: https://$domain_name"
-echo "      username: $user_name"
-echo "      password: $user_password"
-echo ""
-echo "   The domain name in the browser is used by default as part of the authentication."
-echo "   If you need to login to a different domain then use username@domain."
-echo "      username: $user_name@$domain_name";
-echo ""
