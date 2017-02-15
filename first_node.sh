@@ -136,7 +136,7 @@ domain_name=$domainname
 domain_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
 
 #add the domain name
-psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_domains (domain_uuid, domain_name, domain_enabled) values('$domain_uuid', '$domain_name', 'true');"
+sudo -u postgres psql -d fusionpbx -c "insert into v_domains (domain_uuid, domain_name, domain_enabled) values('$domain_uuid', '$domain_name', 'true');"
 
 read -n1 -r -p "Press any key to continue..." key
 
@@ -149,7 +149,7 @@ user_salt=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
 user_name=$username
 user_password=$userpass
 password_hash=$(php -r "echo md5('$user_salt$user_password');");
-psql --host=$database_host --port=$database_port --username=$database_username -t -c "insert into v_users (user_uuid, domain_uuid, username, password, salt, user_enabled) values('$user_uuid', '$domain_uuid', '$user_name', '$password_hash', '$user_salt', 'true');"
+sudo -u postgres psql -d fusionpbx -t -c "insert into v_users (user_uuid, domain_uuid, username, password, salt, user_enabled) values('$user_uuid', '$domain_uuid', '$user_name', '$password_hash', '$user_salt', 'true');"
 
 read -n1 -r -p "Press any key to continue..." key
 
@@ -160,7 +160,7 @@ group_uuid=$(echo $group_uuid | sed 's/^[[:blank:]]*//;s/[[:blank:]]*$//')
 #add the user to the group
 group_user_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
 group_name=superadmin
-psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_group_users (group_user_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$group_user_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
+sudo -u postgres psql -d fusionpbx -c "insert into v_group_users (group_user_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$group_user_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
 
 read -n1 -r -p "Press any key to continue..." key
 
