@@ -196,7 +196,7 @@ rm -R /opt/letsencrypt
 rm -R /etc/letsencrypt
 
 #enable fusionpbx nginx config
-cp nginx/fusionpbx /etc/nginx/sites-available/fusionpbx
+cp /usr/src/fusionpbx-install.sh/debian/resources/nginx/fusionpbx /etc/nginx/sites-available/fusionpbx
 #ln -s /etc/nginx/sites-available/fusionpbx /etc/nginx/sites-enabled/fusionpbx
 
 #read the config
