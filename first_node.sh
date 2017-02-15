@@ -94,21 +94,22 @@ sudo -u postgres psql -c "DROP DATABASE fusionpbx";
 sudo -u postgres psql -c "DROP DATABASE freeswitch";
 sudo -u postgres psql -c "CREATE DATABASE fusionpbx";
 sudo -u postgres psql -c "CREATE DATABASE freeswitch";
-sudo -u postgres psql -c "CREATE ROLE fusionpbx WITH SUPERUSER LOGIN PASSWORD '$dbasepass';"
-sudo -u postgres psql -c "CREATE ROLE freeswitch WITH SUPERUSER LOGIN PASSWORD '$dbasepass';"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE fusionpbx to fusionpbx;"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to fusionpbx;"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to freeswitch;"
-sudo -u postgres -d fusionpbx psql -c "CREATE EXTENSION btree_gist;"
-sudo -u postgres -d fusionpbx psql -c "CREATE EXTENSION bdr;"
-sudo -u postgres -d fusionpbx psql -c "SELECT bdr.bdr_group_create(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
-sudo -u postgres -d fusionpbx psql -c "SELECT bdr.bdr_node_join_wait_for_ready();"
-sudo -u postgres -d fusionpbx psql -c "CREATE  EXTENSION pgcrypto;"
-sudo -u postgres -d freeswitch psql -c "CREATE EXTENSION btree_gist;"
-sudo -u postgres -d freeswitch psql -c "CREATE EXTENSION bdr;"
-sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_group_create(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
-sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_node_join_wait_for_ready();"
-sudo -u postgres -d freeswitch psql -c "CREATE  EXTENSION pgcrypto;"
+sudo -u postgres psql -c "ALTER USER fusionpbx WITH PASSWORD '$dbasepass';"
+sudo -u postgres psql -c "ALTER USER freeswitch WITH PASSWORD '$dbasepass';"
+sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION btree_gist;"
+sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION bdr;"
+sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_group_create(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
+sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_node_join_wait_for_ready();"
+sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION pgcrypto;"
+sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION btree_gist;"
+sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION bdr;"
+sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_group_create(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
+sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_node_join_wait_for_ready();"
+sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION pgcrypto;"
+
 
 
 
@@ -120,6 +121,8 @@ chown -R www-data:www-data /var/www/fusionpbx/app/bdr
 mkdir -p /etc/fusionpbx/resources/templates/
 cp -R /var/www/fusionpbx/resources/templates/provision /etc/fusionpbx/resources/templates
 chown -R www-data:www-data /etc/fusionpbx
+
+read -n1 -r -p "Press any key to continue..." key
 
 cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_schema.php > /dev/null 2>&1
 
@@ -135,6 +138,8 @@ domain_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
 #add the domain name
 psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_domains (domain_uuid, domain_name, domain_enabled) values('$domain_uuid', '$domain_name', 'true');"
 
+read -n1 -r -p "Press any key to continue..." key
+
 #app defaults
 cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_domains.php
 
@@ -146,6 +151,8 @@ user_password=$userpass
 password_hash=$(php -r "echo md5('$user_salt$user_password');");
 psql --host=$database_host --port=$database_port --username=$database_username -t -c "insert into v_users (user_uuid, domain_uuid, username, password, salt, user_enabled) values('$user_uuid', '$domain_uuid', '$user_name', '$password_hash', '$user_salt', 'true');"
 
+read -n1 -r -p "Press any key to continue..." key
+
 #get the superadmin group_uuid
 group_uuid=$(psql --host=$database_host --port=$database_port --username=$database_username -t -c "select group_uuid from v_groups where group_name = 'superadmin';");
 group_uuid=$(echo $group_uuid | sed 's/^[[:blank:]]*//;s/[[:blank:]]*$//')
@@ -154,6 +161,8 @@ group_uuid=$(echo $group_uuid | sed 's/^[[:blank:]]*//;s/[[:blank:]]*$//')
 group_user_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
 group_name=superadmin
 psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_group_users (group_user_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$group_user_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
+
+read -n1 -r -p "Press any key to continue..." key
 
 #update xml_cdr url, user and password
 xml_cdr_username=$(dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 | sed 's/[=\+//]//g')
