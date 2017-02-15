@@ -4,7 +4,9 @@
 read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
 read -p "Total Number of Nodes: " totalnode
-read -p "This Nodes IP Address: " thisip
+echo "IP Address of this node is $thisip "
+
+thisip=$(hostname -I | cut -d ' ' -f1)
 
 ip[1]=$thisip
 
