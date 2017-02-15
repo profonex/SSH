@@ -92,13 +92,6 @@ done
 systemctl daemon-reload
 systemctl restart postgresql
 
-#sudo -u postgres psql -c "DROP DATABASE fusionpbx";
-#sudo -u postgres psql -c "DROP DATABASE freeswitch";
-#sudo -u postgres psql -c "CREATE DATABASE fusionpbx";
-#sudo -u postgres psql -c "CREATE DATABASE freeswitch";
-#sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE fusionpbx to fusionpbx;"
-#sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to fusionpbx;"
-#sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to freeswitch;"
 sudo -u postgres psql -c "ALTER USER fusionpbx WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -c "ALTER USER freeswitch WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION btree_gist;"
@@ -112,6 +105,63 @@ sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_group_create(local_node_n
 sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_node_join_wait_for_ready();"
 #sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION pgcrypto;"
 
+#add the config.php
+rm -R /etc/fusionpbx
+mkdir -p /etc/fusionpbx
+chown -R www-data:www-data /etc/fusionpbx
+cp /usr/src/fusionpbx-install.sh/debian/resources/fusionpbx/config.php /etc/fusionpbx
+sed -i /etc/fusionpbx/config.php -e s:'{database_username}:fusionpbx:'
+sed -i /etc/fusionpbx/config.php -e s:"{database_password}:$dbasepass:"
+
+
+#add the database schema
+cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_schema.php > /dev/null 2>&1
+
+
+#get the ip address
+domain_name=$domainname
+
+#get a domain_uuid
+domain_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
+
+#add the domain name
+psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_domains (domain_uuid, domain_name, domain_enabled) values('$domain_uuid', '$domain_name', 'true');"
+
+#app defaults
+cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_domains.php
+
+#add the user
+user_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
+user_salt=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
+user_name=admin
+user_password=$userpass
+password_hash=$(php -r "echo md5('$user_salt$user_password');");
+psql --host=$database_host --port=$database_port --username=$database_username -t -c "insert into v_users (user_uuid, domain_uuid, username, password, salt, user_enabled) values('$user_uuid', '$domain_uuid', '$user_name', '$password_hash', '$user_salt', 'true');"
+
+#get the superadmin group_uuid
+group_uuid=$(psql --host=$database_host --port=$database_port --username=$database_username -t -c "select group_uuid from v_groups where group_name = 'superadmin';");
+group_uuid=$(echo $group_uuid | sed 's/^[[:blank:]]*//;s/[[:blank:]]*$//')
+
+#add the user to the group
+group_user_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
+group_name=superadmin
+psql --host=$database_host --port=$database_port --username=$database_username -c "insert into v_group_users (group_user_uuid, domain_uuid, group_name, group_uuid, user_uuid) values('$group_user_uuid', '$domain_uuid', '$group_name', '$group_uuid', '$user_uuid');"
+
+#update xml_cdr url, user and password
+xml_cdr_username=$(dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 | sed 's/[=\+//]//g')
+xml_cdr_password=$(dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 | sed 's/[=\+//]//g')
+sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_http_protocol}:http:"
+sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{domain_name}:127.0.0.1:"
+sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_project_path}::"
+sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_user}:$xml_cdr_username:"
+sed -i /etc/freeswitch/autoload_configs/xml_cdr.conf.xml -e s:"{v_pass}:$xml_cdr_password:"
+
+#app defaults
+cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_domains.php
+
+#restart freeswitch
+/bin/systemctl daemon-reload
+/bin/systemctl restart freeswitch
 
 
 
@@ -139,6 +189,6 @@ systemctl restart btsync
 systemctl enable btsync
 
 
-echo "postgress password $PGPASSWORD"
+
 
 
