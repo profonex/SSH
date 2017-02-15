@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#trap "set +x; sleep 5; set -x" DEBUG
 
 read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
@@ -103,12 +102,12 @@ sudo -u postgres psql -c "ALTER USER fusionpbx WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -c "ALTER USER freeswitch WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION btree_gist;"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION bdr;"
+sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION btree_gist;"
+sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION bdr;"
 sleep 30
 sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_group_create(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
 sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_node_join_wait_for_ready();"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION pgcrypto;"
-sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION btree_gist;"
-sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION bdr;"
 sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_group_create(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
 sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_node_join_wait_for_ready();"
 sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION pgcrypto;"
