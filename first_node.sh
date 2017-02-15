@@ -130,3 +130,15 @@ wget -qO - https://linux-packages.resilio.com/resilio-sync/key.asc | sudo apt-ke
 apt-get update
 apt-get install btsync
 
+sed -i '8,9s/btsync/www-data/' /lib/systemd/system/btsync.service
+sed -i '15s/btsync:btsync/www-data:www-data/' /lib/systemd/system/btsync.service
+
+chown -R www-data:www-data /var/lib/btsync
+systemctl daemon-reload
+systemctl restart btsync
+systemctl enable btsync
+
+
+
+
+
