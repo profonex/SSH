@@ -1,5 +1,7 @@
 #!/bin/bash
 
+trap "set +x; sleep 5; set -x" DEBUG
+
 read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
 read -p "Total Number of Nodes: " totalnode
@@ -101,6 +103,7 @@ sudo -u postgres psql -c "ALTER USER fusionpbx WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -c "ALTER USER freeswitch WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION btree_gist;"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION bdr;"
+sleep 30
 sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_group_create(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1 sslmode=require');"
 sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_node_join_wait_for_ready();"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION pgcrypto;"
@@ -123,8 +126,6 @@ cp -R /var/www/fusionpbx/resources/templates/provision /etc/fusionpbx/resources/
 chown -R www-data:www-data /etc/fusionpbx
 
 read -n1 -r -p "Press any key to continue..." key
-
-cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_schema.php > /dev/null 2>&1
 
 #get the server hostname
 #domain_name=$(hostname -f)
