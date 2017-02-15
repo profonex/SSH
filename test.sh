@@ -19,6 +19,15 @@ database_host=127.0.0.1
 database_port=5432
 database_username=fusionpbx
 
+
+#add the config.php
+rm -R /etc/fusionpbx
+mkdir -p /etc/fusionpbx
+chown -R www-data:www-data /etc/fusionpbx
+cp /usr/src/fusionpbx-install.sh/debian/resources/fusionpbx/config.php /etc/fusionpbx
+sed -i /etc/fusionpbx/config.php -e s:'{database_username}:fusionpbx:'
+sed -i /etc/fusionpbx/config.php -e s:"{database_password}:$database_password:"
+
 systemctl daemon-reload
 systemctl restart postgresql
 
