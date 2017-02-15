@@ -92,13 +92,13 @@ done
 systemctl daemon-reload
 systemctl restart postgresql
 
-sudo -u postgres psql -c "DROP DATABASE fusionpbx";
-sudo -u postgres psql -c "DROP DATABASE freeswitch";
-sudo -u postgres psql -c "CREATE DATABASE fusionpbx";
-sudo -u postgres psql -c "CREATE DATABASE freeswitch";
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE fusionpbx to fusionpbx;"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to fusionpbx;"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to freeswitch;"
+#sudo -u postgres psql -c "DROP DATABASE fusionpbx";
+#sudo -u postgres psql -c "DROP DATABASE freeswitch";
+#sudo -u postgres psql -c "CREATE DATABASE fusionpbx";
+#sudo -u postgres psql -c "CREATE DATABASE freeswitch";
+#sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE fusionpbx to fusionpbx;"
+#sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to fusionpbx;"
+#sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to freeswitch;"
 sudo -u postgres psql -c "ALTER USER fusionpbx WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -c "ALTER USER freeswitch WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION btree_gist;"
@@ -139,6 +139,6 @@ systemctl restart btsync
 systemctl enable btsync
 
 
-
+echo "postgress password $PGPASSWORD"
 
 
