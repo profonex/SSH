@@ -1,9 +1,11 @@
 #!/bin/bash
 
+thisip=$(hostname -I | cut -d ' ' -f1)
+
 read -p "Node Name: " nodename
 read -p "Database Password: " dbasepass
 read -p "Total Number of Nodes: " totalnode
-read -p "This Nodes IP Address: " thisip
+echo "IP Address of this node is $thisip "
 
 ip[1]=$thisip
 
@@ -20,7 +22,7 @@ read -p "Node IP you want to connect to: " near_node
 read -p "What is the FQDN on this Node: " domainname
 read -p "Username For this Node: " username
 read -p "Password for this Node: " userpass
-read -p "What is your email address: " email
+read -p "What is your email address: " email_address
 
 #database details
 database_host=127.0.0.1
@@ -32,7 +34,7 @@ apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-y
 sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
-./install.sh
+./install.sh && rm /etc/fusionpbx/config.php
 
 
 for i in $(seq $totalnode)
@@ -86,10 +88,12 @@ do
   echo "hostssl     replication     postgres     ${ip[$i]}/32     trust" >> /etc/postgresql/9.4/main/pg_hba.conf
 done
 
-sed -i /etc/fusionpbx/config.php -e s:"{database_password}:$dbasepass:"
+
 
 systemctl daemon-reload
 systemctl restart postgresql
+
+export PGPASSWORD=$dbasepass
 
 sudo -u postgres psql -c "DROP DATABASE fusionpbx";
 sudo -u postgres psql -c "DROP DATABASE freeswitch";
@@ -107,28 +111,22 @@ sudo -u postgres -d fusionpbx psql -c "SELECT bdr.bdr_node_join_wait_for_ready()
 sudo -u postgres -d fusionpbx psql -c "CREATE  EXTENSION pgcrypto;"
 sudo -u postgres -d freeswitch psql -c "CREATE EXTENSION btree_gist;"
 sudo -u postgres -d freeswitch psql -c "CREATE EXTENSION bdr;"
-sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
+sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
 sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_node_join_wait_for_ready();"
 sudo -u postgres -d freeswitch psql -c "CREATE  EXTENSION pgcrypto;"
 
-
-
-cd /usr/src
-git clone https://github.com/fusionpbx/fusionpbx-apps 
-cp -R fusionpbx-apps/bdr /var/www/fusionpbx/app
-chown -R www-data:www-data /var/www/fusionpbx/app/bdr
-
-mkdir -p /etc/fusionpbx/resources/templates/
-cp -R /var/www/fusionpbx/resources/templates/provision /etc/fusionpbx/resources/templates
+#add the config.php
+#rm -R /etc/fusionpbx
+#mkdir -p /etc/fusionpbx
 chown -R www-data:www-data /etc/fusionpbx
-
-cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_schema.php > /dev/null 2>&1
-
-#get the server hostname
-#domain_name=$(hostname -f)
+cp /usr/src/fusionpbx-install.sh/debian/resources/fusionpbx/config.php /etc/fusionpbx
+sed -i /etc/fusionpbx/config.php -e s:'{database_username}:fusionpbx:'
+sed -i /etc/fusionpbx/config.php -e s:"{database_password}:$dbasepass:"
 
 #get the ip address
 domain_name=$domainname
+
+
 
 #get a domain_uuid
 domain_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
@@ -142,7 +140,7 @@ cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_domains.php
 #add the user
 user_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
 user_salt=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
-user_name=$username
+user_name=admin
 user_password=$userpass
 password_hash=$(php -r "echo md5('$user_salt$user_password');");
 psql --host=$database_host --port=$database_port --username=$database_username -t -c "insert into v_users (user_uuid, domain_uuid, username, password, salt, user_enabled) values('$user_uuid', '$domain_uuid', '$user_name', '$password_hash', '$user_salt', 'true');"
@@ -172,17 +170,80 @@ cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_domains.php
 /bin/systemctl daemon-reload
 /bin/systemctl restart freeswitch
 
-#welcome message
-echo ""
-echo ""
-verbose "Installation has completed."
-echo ""
-echo "   Use a web browser to login."
-echo "      domain name: https://$domain_name"
-echo "      username: $user_name"
-echo "      password: $user_password"
-echo ""
-echo "   The domain name in the browser is used by default as part of the authentication."
-echo "   If you need to login to a different domain then use username@domain."
-echo "      username: $user_name@$domain_name";
-echo ""
+
+
+cd /usr/src
+git clone https://github.com/fusionpbx/fusionpbx-apps 
+cp -R fusionpbx-apps/bdr /var/www/fusionpbx/app
+chown -R www-data:www-data /var/www/fusionpbx/app/bdr
+
+mkdir -p /etc/fusionpbx/resources/templates/
+cp -R /var/www/fusionpbx/resources/templates/provision /etc/fusionpbx/resources/templates
+chown -R www-data:www-data /etc/fusionpbx
+
+
+sh -c 'echo "deb http://linux-packages.getsync.com/btsync/deb btsync non-free" > /etc/apt/sources.list.d/btsync.list'
+wget -qO - https://linux-packages.resilio.com/resilio-sync/key.asc | sudo apt-key add -
+apt-get update
+apt-get install btsync
+
+sed -i '8,9s/btsync/www-data/' /lib/systemd/system/btsync.service
+sed -i '15s/btsync:btsync/www-data:www-data/' /lib/systemd/system/btsync.service
+
+chown -R www-data:www-data /var/lib/btsync
+systemctl daemon-reload
+systemctl restart btsync
+systemctl enable btsync
+
+#remove previous install
+rm -R /opt/letsencrypt
+rm -R /etc/letsencrypt
+
+#enable fusionpbx nginx config
+cp /usr/src/fusionpbx-install.sh/debian/resources/nginx/fusionpbx /etc/nginx/sites-available/fusionpbx
+#ln -s /etc/nginx/sites-available/fusionpbx /etc/nginx/sites-enabled/fusionpbx
+
+#read the config
+/usr/sbin/nginx -t && /usr/sbin/nginx -s reload
+
+#install letsencrypt
+git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
+chmod 755 /opt/letsencrypt/certbot-auto
+/opt/letsencrypt/./certbot-auto
+mkdir -p /etc/letsencrypt/configs
+mkdir -p /var/www/letsencrypt/
+
+#cd $pwd
+#cd "$(dirname "$0")"
+
+#copy the domain conf
+cp /usr/src/fusionpbx-install.sh/debian/resources/letsencrypt/domain_name.conf /etc/letsencrypt/configs/$domain_name.conf
+
+#update the domain_name and email_address
+sed "s#{domain_name}#$domain_name#g" -i /etc/letsencrypt/configs/$domain_name.conf
+sed "s#{email_address}#$email_address#g" -i /etc/letsencrypt/configs/$domain_name.conf
+
+#letsencrypt
+#sed "s@#letsencrypt@location /.well-known/acme-challenge { root /var/www/letsencrypt; }@g" -i /etc/nginx/sites-available/fusionpbx
+
+#get the certs from letsencrypt
+cd /opt/letsencrypt && ./letsencrypt-auto --config /etc/letsencrypt/configs/$domain_name.conf certonly
+
+#update nginx config
+sed "s@ssl_certificate         /etc/ssl/certs/nginx.crt;@ssl_certificate /etc/letsencrypt/live/$domain_name/fullchain.pem;@g" -i /etc/nginx/sites-available/fusionpbx
+sed "s@ssl_certificate_key     /etc/ssl/private/nginx.key;@ssl_certificate_key /etc/letsencrypt/live/$domain_name/privkey.pem;@g" -i /etc/nginx/sites-available/fusionpbx
+
+#read the config
+/usr/sbin/nginx -t && /usr/sbin/nginx -s reload
+
+#combine the certs into all.pem
+cat /etc/letsencrypt/live/$domain_name/cert.pem > /etc/letsencrypt/live/$domain_name/all.pem
+cat /etc/letsencrypt/live/$domain_name/privkey.pem >> /etc/letsencrypt/live/$domain_name/all.pem
+cat /etc/letsencrypt/live/$domain_name/chain.pem >> /etc/letsencrypt/live/$domain_name/all.pem
+
+#copy the certs to the switch tls directory
+mkdir -p /etc/freeswitch/tls
+cp /etc/letsencrypt/live/$domain_name/*.pem /etc/freeswitch/tls
+cp /etc/freeswitch/tls/all.pem /etc/freeswitch/tls/wss.pem
+chown -R www-data:www-data /etc/freeswitch
+
