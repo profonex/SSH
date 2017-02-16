@@ -109,8 +109,8 @@ sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_node_join_wait_for_ready(
 
 
 #add the config.php
-rm -R /etc/fusionpbx
-mkdir -p /etc/fusionpbx
+#rm -R /etc/fusionpbx
+#mkdir -p /etc/fusionpbx
 chown -R www-data:www-data /etc/fusionpbx
 cp /usr/src/fusionpbx-install.sh/debian/resources/fusionpbx/config.php /etc/fusionpbx
 sed -i /etc/fusionpbx/config.php -e s:'{database_username}:fusionpbx:'
@@ -242,6 +242,3 @@ mkdir -p /etc/freeswitch/tls
 cp /etc/letsencrypt/live/$domain_name/*.pem /etc/freeswitch/tls
 cp /etc/freeswitch/tls/all.pem /etc/freeswitch/tls/wss.pem
 chown -R www-data:www-data /etc/freeswitch
-
-
-
