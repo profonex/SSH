@@ -32,15 +32,15 @@ database_username=fusionpbx
 
 apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian
 
-#sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
-#sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
+sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
+sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
  ./install.sh && rm /etc/fusionpbx/config.php
 
-echo 'deb http://packages.2ndquadrant.com/bdr/apt/ jessie-2ndquadrant main' > /etc/apt/sources.list.d/2ndquadrant.list
-wget --quiet -O - http://packages.2ndquadrant.com/bdr/apt/AA7A6805.asc | sudo apt-key add -
-sudo apt-get update
-sudo apt-get install -y postgresql-9.6-bdr-plugin
+#echo 'deb http://packages.2ndquadrant.com/bdr/apt/ jessie-2ndquadrant main' > /etc/apt/sources.list.d/2ndquadrant.list
+#wget --quiet -O - http://packages.2ndquadrant.com/bdr/apt/AA7A6805.asc | sudo apt-key add -
+#sudo apt-get update
+#sudo apt-get install -y postgresql-9.6-bdr-plugin
 
 for i in $(seq $totalnode)
 do
@@ -101,16 +101,18 @@ export PGPASSWORD=$dbasepass
 
 sudo -u postgres psql -c "ALTER USER fusionpbx WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -c "ALTER USER freeswitch WITH PASSWORD '$dbasepass';"
+sudo -u postgres psql -d fusionpbx -c "drop schema public cascade;"
+sudo -u postgres psql -d fusionpbx -c "create schema public;"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION btree_gist;"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION bdr;"
 sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION btree_gist;"
 sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION bdr;"
-sudo -u postgres -d fusionpbx psql -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
+sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
 sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_node_join_wait_for_ready();"
-sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
+sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
 sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_node_join_wait_for_ready();"
-sudo -u postgres -d fusionpbx psql -c "CREATE  EXTENSION pgcrypto;"
-sudo -u postgres -d freeswitch psql -c "CREATE  EXTENSION pgcrypto;"
+sudo -u postgres psql -d fusionpbx -c "CREATE  EXTENSION pgcrypto;"
+sudo -u postgres psql -d freeswitch -c "CREATE  EXTENSION pgcrypto;"
 
 
 #add the config.php
