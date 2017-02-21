@@ -7,6 +7,7 @@ read -p "Database Password: " dbasepass
 read -p "Total Number of Nodes: " totalnode
 echo "IP Address of this node is $thisip "
 
+
 ip[1]=$thisip
 
 nodenumber=$(($totalnode-1))
@@ -19,8 +20,8 @@ do
 done
 
 read -p "Node IP you want to connect to: " near_node
-read -p "What is the FQDN on this Node: " domainname
-read -p "Username For this Node: " username
+read -p "What is the FQDN of this Node: " domainname
+read -p "Username for this Node: " username
 read -p "Password for this Node: " userpass
 read -p "What is your email address: " email_address
 
@@ -34,8 +35,12 @@ apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-y
 sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
-./install.sh && rm /etc/fusionpbx/config.php
+ ./install.sh && rm /etc/fusionpbx/config.php
 
+#echo 'deb http://packages.2ndquadrant.com/bdr/apt/ jessie-2ndquadrant main' > /etc/apt/sources.list.d/2ndquadrant.list
+#wget --quiet -O - http://packages.2ndquadrant.com/bdr/apt/AA7A6805.asc | sudo apt-key add -
+#sudo apt-get update
+#sudo apt-get install -y postgresql-9.6-bdr-plugin
 
 for i in $(seq $totalnode)
 do
@@ -43,9 +48,10 @@ do
   iptables -A INPUT -j ACCEPT -p tcp --dport 8080 -s ${ip[$i]}/32
   iptables -A INPUT -j ACCEPT -p tcp --dport 4444 -s ${ip[$i]}/32
 done
-#answer the questions for iptables persistent
-echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
-echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
+
+iptables-save > /etc/iptables/rules.v4
+ip6tables-save > /etc/iptables/rules.v6
+
 
 sed -i /etc/postgresql/9.4/main/postgresql.conf -e s:'snakeoil.key:snakeoil-postgres.key:'
 cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/private/ssl-cert-snakeoil-postgres.key
@@ -89,31 +95,24 @@ do
 done
 
 
-
 systemctl daemon-reload
 systemctl restart postgresql
 
 export PGPASSWORD=$dbasepass
 
-sudo -u postgres psql -c "DROP DATABASE fusionpbx";
-sudo -u postgres psql -c "DROP DATABASE freeswitch";
-sudo -u postgres psql -c "CREATE DATABASE fusionpbx";
-sudo -u postgres psql -c "CREATE DATABASE freeswitch";
-sudo -u postgres psql -c "CREATE ROLE fusionpbx WITH SUPERUSER LOGIN PASSWORD '$dbasepass';"
-sudo -u postgres psql -c "CREATE ROLE freeswitch WITH SUPERUSER LOGIN PASSWORD '$dbasepass';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE fusionpbx to fusionpbx;"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to fusionpbx;"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE freeswitch to freeswitch;"
-sudo -u postgres -d fusionpbx psql -c "CREATE EXTENSION btree_gist;"
-sudo -u postgres -d fusionpbx psql -c "CREATE EXTENSION bdr;"
-sudo -u postgres -d fusionpbx psql -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
-sudo -u postgres -d fusionpbx psql -c "SELECT bdr.bdr_node_join_wait_for_ready();"
-sudo -u postgres -d fusionpbx psql -c "CREATE  EXTENSION pgcrypto;"
-sudo -u postgres -d freeswitch psql -c "CREATE EXTENSION btree_gist;"
-sudo -u postgres -d freeswitch psql -c "CREATE EXTENSION bdr;"
-sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
-sudo -u postgres -d freeswitch psql -c "SELECT bdr.bdr_node_join_wait_for_ready();"
-sudo -u postgres -d freeswitch psql -c "CREATE  EXTENSION pgcrypto;"
+sudo -u postgres psql -c "ALTER USER fusionpbx WITH PASSWORD '$dbasepass';"
+sudo -u postgres psql -c "ALTER USER freeswitch WITH PASSWORD '$dbasepass';"
+sudo -u postgres psql -d fusionpbx -c "drop schema public cascade;"
+sudo -u postgres psql -d fusionpbx -c "create schema public;"
+sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION btree_gist;"
+sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION bdr;"
+sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION btree_gist;"
+sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION bdr;"
+sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=fusionpbx connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
+sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_node_join_wait_for_ready();"
+sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
+sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_node_join_wait_for_ready();"
+
 
 #add the config.php
 #rm -R /etc/fusionpbx
@@ -123,10 +122,13 @@ cp /usr/src/fusionpbx-install.sh/debian/resources/fusionpbx/config.php /etc/fusi
 sed -i /etc/fusionpbx/config.php -e s:'{database_username}:fusionpbx:'
 sed -i /etc/fusionpbx/config.php -e s:"{database_password}:$dbasepass:"
 
+
+#add the database schema
+cd /var/www/fusionpbx && php /var/www/fusionpbx/core/upgrade/upgrade_schema.php > /dev/null 2>&1
+
+
 #get the ip address
 domain_name=$domainname
-
-
 
 #get a domain_uuid
 domain_uuid=$(/usr/bin/php /var/www/fusionpbx/resources/uuid.php);
@@ -178,7 +180,6 @@ cp -R fusionpbx-apps/bdr /var/www/fusionpbx/app
 chown -R www-data:www-data /var/www/fusionpbx/app/bdr
 
 mkdir -p /etc/fusionpbx/resources/templates/
-cp -R /var/www/fusionpbx/resources/templates/provision /etc/fusionpbx/resources/templates
 chown -R www-data:www-data /etc/fusionpbx
 
 
@@ -246,4 +247,13 @@ mkdir -p /etc/freeswitch/tls
 cp /etc/letsencrypt/live/$domain_name/*.pem /etc/freeswitch/tls
 cp /etc/freeswitch/tls/all.pem /etc/freeswitch/tls/wss.pem
 chown -R www-data:www-data /etc/freeswitch
+
+
+rm -R /var/lib/freeswitch/recordings/*
+rm -R /var/lib/freeswitch/storage/*
+rm -R /usr/share/freeswitch/*
+rm -R /etc/freeswitch/*
+rm -R /var/www/fusionpbx/*
+rm -R /etc/fusionpbx/*
+
 
