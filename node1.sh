@@ -34,6 +34,8 @@ apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-y
 sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
+sed '25,45 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/fail2ban/jail.local
+
  ./install.sh && rm /etc/fusionpbx/config.php
 
 #echo 'deb http://packages.2ndquadrant.com/bdr/apt/ jessie-2ndquadrant main' > /etc/apt/sources.list.d/2ndquadrant.list
