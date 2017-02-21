@@ -182,7 +182,6 @@ cp -R fusionpbx-apps/bdr /var/www/fusionpbx/app
 chown -R www-data:www-data /var/www/fusionpbx/app/bdr
 
 mkdir -p /etc/fusionpbx/resources/templates/
-cp -R /var/www/fusionpbx/resources/templates/provision /etc/fusionpbx/resources/templates
 chown -R www-data:www-data /etc/fusionpbx
 
 
