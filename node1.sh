@@ -104,8 +104,8 @@ export PGPASSWORD=$dbasepass
 
 sudo -u postgres psql -c "ALTER USER fusionpbx WITH PASSWORD '$dbasepass';"
 sudo -u postgres psql -c "ALTER USER freeswitch WITH PASSWORD '$dbasepass';"
-sudo -u postgres psql -d fusionpbx -c "drop schema public cascade;"
-sudo -u postgres psql -d fusionpbx -c "create schema public;"
+#sudo -u postgres psql -d fusionpbx -c "drop schema public cascade;"
+#sudo -u postgres psql -d fusionpbx -c "create schema public;"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION btree_gist;"
 sudo -u postgres psql -d fusionpbx -c "CREATE EXTENSION bdr;"
 sudo -u postgres psql -d freeswitch -c "CREATE EXTENSION btree_gist;"
