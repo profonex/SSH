@@ -25,6 +25,8 @@ read -p "Username for this Node: " username
 read -p "Password for this Node: " userpass
 read -p "What is your email address: " email_address
 
+sed "s@127.0.1.1@127.0.0.1@g" -i /etc/hosts
+
 #database details
 database_host=127.0.0.1
 database_port=5432
