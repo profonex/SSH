@@ -3,10 +3,11 @@ now=$(date +%Y-%m-%d)
 database_host=127.0.0.1
 database_port=5432
 #export PGPASSWORD="zzz"
+#pbx=pbx?
 
 echo "Server Maintenance"
 mkdir -p /var/backups/fusionpbx/postgresql
-mkdir -p /var/backups/fusionpbx/pbx01
+mkdir -p /var/backups/fusionpbx/pbx/$pbx
 #delete backups older 3 days
 find /var/backups/fusionpbx/postgresql/fusionpbx_pgsql* -mtime +2 -exec rm {} \;
 find /var/backups/fusionpbx/*.tgz -mtime +2 -exec rm {} \;
@@ -49,7 +50,7 @@ pg_dump --verbose -Fc --host=$database_host --port=$database_port -U fusionpbx f
 #mysqldump -u root fusionpbx > /var/backup/fusionpbx/mysql/fusionpbx_mysql_$now.sql
 
 #package - backup the files and directories
-tar -zvcf /var/backups/fusionpbx/backup_$now.tgz /var/backups/fusionpbx/postgresql/fusionpbx_pgsql_$now.sql /var/www/fusionpbx /usr/share/freeswitch/scripts /var/lib/freeswitch/storage /var/lib/freeswitch/recordings /etc/fusionpbx /etc/freeswitch
+tar -zvcf /var/backups/fusionpbx/pbx/$pbx/backup_$now.tgz /var/backups/fusionpbx/postgresql/fusionpbx_pgsql_$now.sql /var/www/fusionpbx /usr/share/freeswitch/scripts /var/lib/freeswitch/storage /var/lib/freeswitch/recordings /etc/fusionpbx /etc/freeswitch
 
 #source - backup the files and directories
 #tar -zvcf /var/backups/fusionpbx/backup_$now.tgz /var/backups/fusionpbx/postgresql/fusionpbx_pgsql_$now.sql /var/www/fusionpbx /usr/local/freeswitch/scripts /usr/local/freeswitch/storage /usr/local/freeswitch/recordings /etc/fusionpbx /usr/local/freeswitch/conf
