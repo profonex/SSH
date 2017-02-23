@@ -13,6 +13,8 @@ sed -i '15s/rslsync:rslsync/www-data:www-data/' /lib/systemd/system/resilio-sync
 
 chown -R www-data:www-data /var/lib/resilio-sync
 systemctl daemon-reload
+systemctl stop resilio-sync
+rslsync --config /usr/src/scripts/btsync/rslsync.conf
 systemctl restart resilio-sync
 systemctl enable resilio-sync
 
