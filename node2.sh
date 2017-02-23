@@ -200,7 +200,7 @@ sed -i '15s/rslsync:rslsync/www-data:www-data/' /lib/systemd/system/resilio-sync
 chown -R www-data:www-data /var/lib/resilio-sync
 systemctl daemon-reload
 systemctl stop resilio-sync
-rslsync --config rslsync/rslsync.conf
+rslsync --config /usr/src/scripts/rslsync/rslsync.conf
 systemctl restart resilio-sync
 systemctl enable resilio-sync
 
