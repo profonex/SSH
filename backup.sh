@@ -6,6 +6,7 @@ database_port=5432
 
 echo "Server Maintenance"
 mkdir -p /var/backups/fusionpbx/postgresql
+mkdir -p /var/backups/fusionpbx/pbx01
 #delete backups older 3 days
 find /var/backups/fusionpbx/postgresql/fusionpbx_pgsql* -mtime +2 -exec rm {} \;
 find /var/backups/fusionpbx/*.tgz -mtime +2 -exec rm {} \;
