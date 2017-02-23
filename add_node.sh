@@ -187,21 +187,18 @@ mkdir -p /etc/fusionpbx/resources/templates/
 chown -R www-data:www-data /etc/fusionpbx
 
 
-sh -c 'echo "deb http://linux-packages.resilio.com/resilio-sync/deb resilio-sync non-free" > /etc/apt/sources.list.d/resilio-sync.list'
+sh -c 'echo "deb http://linux-packages.getsync.com/btsync/deb btsync non-free" > /etc/apt/sources.list.d/btsync.list'
 wget -qO - https://linux-packages.resilio.com/resilio-sync/key.asc | apt-key add -
 apt-get update
-apt-get install -y resilio-sync
+apt-get install btsync
 
-sed -i '8,9s/rslsync/www-data/' /lib/systemd/system/resilio-sync.service
-sed -i '15s/rslsync:rslsync/www-data:www-data/' /lib/systemd/system/resilio-sync.service
+sed -i '8,9s/btsync/www-data/' /lib/systemd/system/btsync.service
+sed -i '15s/btsync:btsync/www-data:www-data/' /lib/systemd/system/btsync.service
 
-chown -R www-data:www-data /var/lib/resilio-sync
+chown -R www-data:www-data /var/lib/btsync
 systemctl daemon-reload
-systemctl stop resilio-sync
-rslsync --config rslsync/rslsync.conf
-systemctl restart resilio-sync
-systemctl enable resilio-sync
-
+systemctl restart btsync
+systemctl enable btsync
 
 #remove previous install
 rm -R /opt/letsencrypt
