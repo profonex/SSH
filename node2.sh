@@ -200,7 +200,7 @@ sed -i '15s/btsync:btsync/www-data:www-data/' /lib/systemd/system/resilio-sync.s
 chown -R www-data:www-data /var/lib/resilio-sync
 systemctl daemon-reload
 systemctl restart resilio-sync
-ystemctl enable resilio-sync
+systemctl enable resilio-sync
 
 #remove previous install
 rm -R /opt/letsencrypt
