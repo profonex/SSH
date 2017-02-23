@@ -195,7 +195,7 @@ apt-get update
 apt-get install resilio-sync
 
 sed -i '8,9s/rslsync/www-data/' /lib/systemd/system/resilio-sync.service
-sed -i '15s/rslsync:rslync/www-data:www-data/' /lib/systemd/system/resilio-sync.service
+sed -i '15s/rslsync:rslsync/www-data:www-data/' /lib/systemd/system/resilio-sync.service
 
 chown -R www-data:www-data /var/lib/resilio-sync
 systemctl daemon-reload
