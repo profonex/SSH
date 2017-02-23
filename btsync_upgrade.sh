@@ -8,7 +8,7 @@ wget -qO - https://linux-packages.resilio.com/resilio-sync/key.asc | apt-key add
 apt-get update
 apt-get install -y resilio-sync
 
-cp /usr/src/scripts/rslsync/rslsync.conf /etc/resilio-sync/rslsync.conf
+#cp /usr/src/scripts/rslsync/rslsync.conf /etc/resilio-sync/rslsync.conf
 
 sed -i '8,9s/rslsync/www-data/' /lib/systemd/system/resilio-sync.service
 sed -i '15s/rslsync:rslsync/www-data:www-data/' /lib/systemd/system/resilio-sync.service
