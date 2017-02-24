@@ -254,3 +254,14 @@ mkdir -p /etc/freeswitch/tls
 cp /etc/letsencrypt/live/$domain_name/*.pem /etc/freeswitch/tls
 cp /etc/freeswitch/tls/all.pem /etc/freeswitch/tls/wss.pem
 chown -R www-data:www-data /etc/freeswitch
+
+
+mkdir -p /var/backups/fusionpbx/pbx
+chown -R www-data:www-data /var/backups/fusionpbx/pbx
+
+rm -R /var/lib/freeswitch/recordings/*
+rm -R /var/lib/freeswitch/storage/*
+rm -R /usr/share/freeswitch/*
+rm -R /etc/freeswitch/*
+rm -R /var/www/fusionpbx/*
+rm -R /etc/fusionpbx/*
