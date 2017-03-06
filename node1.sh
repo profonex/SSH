@@ -36,6 +36,8 @@ apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-y
 # sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 # sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
+sed "s@database_repo=official@database_repo=2ndquadrant@g" -i /usr/src/fusionpbx-install.sh/debian/resources/config.sh
+
 sed '25,45 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/fail2ban/jail.local
 
  ./install.sh && rm /etc/fusionpbx/config.php
