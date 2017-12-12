@@ -207,10 +207,10 @@ mkdir -p /var/backups/fusionpbx/pbx
 chown -R www-data:www-data /var/backups/fusionpbx/pbx
 
 
-#rm -R /var/lib/freeswitch/recordings/*
-#rm -R /var/lib/freeswitch/storage/*
-#rm -R /usr/share/freeswitch/*
-#rm -R /etc/freeswitch/*
-#rm -R /var/www/fusionpbx/*
-#rm -R /etc/fusionpbx/*
+rm -R /var/lib/freeswitch/recordings/*
+rm -R /var/lib/freeswitch/storage/*
+rm -R /usr/share/freeswitch/*
+rm -R /etc/freeswitch/*
+rm -R /var/www/fusionpbx/*
+rm -R /etc/fusionpbx/*
 
