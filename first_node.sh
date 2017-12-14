@@ -29,12 +29,12 @@ database_host=127.0.0.1
 database_port=5432
 database_username=fusionpbx
 
-apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian
+#apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian
 
-sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
-sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
+#sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
+#sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
 
- ./install.sh && rm /etc/fusionpbx/config.php
+# ./install.sh && rm /etc/fusionpbx/config.php
 
 
 for i in $(seq $totalnode)
@@ -188,55 +188,3 @@ chown -R www-data:www-data /var/lib/btsync
 systemctl daemon-reload
 systemctl restart btsync
 systemctl enable btsync
-
-#remove previous install
-rm -R /opt/letsencrypt
-rm -R /etc/letsencrypt
-
-#enable fusionpbx nginx config
-cp /usr/src/fusionpbx-install.sh/debian/resources/nginx/fusionpbx /etc/nginx/sites-available/fusionpbx
-#ln -s /etc/nginx/sites-available/fusionpbx /etc/nginx/sites-enabled/fusionpbx
-
-#read the config
-/usr/sbin/nginx -t && /usr/sbin/nginx -s reload
-
-#install letsencrypt
-git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
-chmod 755 /opt/letsencrypt/certbot-auto
-/opt/letsencrypt/./certbot-auto
-mkdir -p /etc/letsencrypt/configs
-mkdir -p /var/www/letsencrypt/
-
-#cd $pwd
-#cd "$(dirname "$0")"
-
-#copy the domain conf
-cp /usr/src/fusionpbx-install.sh/debian/resources/letsencrypt/domain_name.conf /etc/letsencrypt/configs/$domain_name.conf
-
-#update the domain_name and email_address
-sed "s#{domain_name}#$domain_name#g" -i /etc/letsencrypt/configs/$domain_name.conf
-sed "s#{email_address}#$email_address#g" -i /etc/letsencrypt/configs/$domain_name.conf
-
-#letsencrypt
-#sed "s@#letsencrypt@location /.well-known/acme-challenge { root /var/www/letsencrypt; }@g" -i /etc/nginx/sites-available/fusionpbx
-
-#get the certs from letsencrypt
-cd /opt/letsencrypt && ./letsencrypt-auto --config /etc/letsencrypt/configs/$domain_name.conf certonly
-
-#update nginx config
-sed "s@ssl_certificate         /etc/ssl/certs/nginx.crt;@ssl_certificate /etc/letsencrypt/live/$domain_name/fullchain.pem;@g" -i /etc/nginx/sites-available/fusionpbx
-sed "s@ssl_certificate_key     /etc/ssl/private/nginx.key;@ssl_certificate_key /etc/letsencrypt/live/$domain_name/privkey.pem;@g" -i /etc/nginx/sites-available/fusionpbx
-
-#read the config
-/usr/sbin/nginx -t && /usr/sbin/nginx -s reload
-
-#combine the certs into all.pem
-cat /etc/letsencrypt/live/$domain_name/cert.pem > /etc/letsencrypt/live/$domain_name/all.pem
-cat /etc/letsencrypt/live/$domain_name/privkey.pem >> /etc/letsencrypt/live/$domain_name/all.pem
-cat /etc/letsencrypt/live/$domain_name/chain.pem >> /etc/letsencrypt/live/$domain_name/all.pem
-
-#copy the certs to the switch tls directory
-mkdir -p /etc/freeswitch/tls
-cp /etc/letsencrypt/live/$domain_name/*.pem /etc/freeswitch/tls
-cp /etc/freeswitch/tls/all.pem /etc/freeswitch/tls/wss.pem
-chown -R www-data:www-data /etc/freeswitch
