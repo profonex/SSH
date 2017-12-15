@@ -19,7 +19,7 @@ do
     c=$((c+1));
 done
 
-#read -p "Node IP you want to connect to: " near_node
+read -p "Node IP you want to connect to: " near_node
 #read -p "What is the FQDN of this Node: " domainname
 #read -p "Username for this Node: " username
 #read -p "Password for this Node: " userpass
