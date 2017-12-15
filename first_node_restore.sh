@@ -138,9 +138,15 @@ systemctl restart btsync
 systemctl enable btsync
 
 
-rm -R /var/lib/freeswitch/recordings/*
-rm -R /var/lib/freeswitch/storage/*
-rm -R /usr/share/freeswitch/*
-rm -R /etc/freeswitch/*
-rm -R /var/www/fusionpbx/*
-rm -R /etc/fusionpbx/*
+rm -rf /var/lib/freeswitch/recordings/*
+rm -rf /var/lib/freeswitch/storage/*
+rm -rf /usr/share/freeswitch/*
+rm -rf /etc/freeswitch/*
+rm -rf /var/www/fusionpbx/*
+rm -rf /etc/fusionpbx/*
+rm -rf /var/lib/freeswitch/recordings/.*
+rm -rf /var/lib/freeswitch/storage/.*
+rm -rf /usr/share/freeswitch/.*
+rm -rf /etc/freeswitch/.*
+rm -rf /var/www/fusionpbx/.*
+rm -rf /etc/fusionpbx/.*
