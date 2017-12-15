@@ -130,8 +130,8 @@ git clone https://github.com/fusionpbx/fusionpbx-apps
 cp -R fusionpbx-apps/bdr /var/www/fusionpbx/app
 chown -R www-data:www-data /var/www/fusionpbx/app/bdr
 
-mkdir -p /etc/fusionpbx/resources/templates/
-chown -R www-data:www-data /etc/fusionpbx
+#mkdir -p /etc/fusionpbx/resources/templates/
+#chown -R www-data:www-data /etc/fusionpbx
 
 
 sh -c 'echo "deb http://linux-packages.getsync.com/btsync/deb btsync non-free" > /etc/apt/sources.list.d/btsync.list'
