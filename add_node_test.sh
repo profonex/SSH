@@ -19,11 +19,11 @@ do
     c=$((c+1));
 done
 
-read -p "Node IP you want to connect to: " near_node
-read -p "What is the FQDN of this Node: " domainname
-read -p "Username for this Node: " username
-read -p "Password for this Node: " userpass
-read -p "What is your email address: " email_address
+#read -p "Node IP you want to connect to: " near_node
+#read -p "What is the FQDN of this Node: " domainname
+#read -p "Username for this Node: " username
+#read -p "Password for this Node: " userpass
+#read -p "What is your email address: " email_address
 
 sed "s@127.0.1.1@127.0.0.1@g" -i /etc/hosts
 
