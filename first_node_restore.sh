@@ -43,9 +43,10 @@ do
   iptables -A INPUT -j ACCEPT -p tcp --dport 8080 -s ${ip[$i]}/32
   iptables -A INPUT -j ACCEPT -p tcp --dport 4444 -s ${ip[$i]}/32
 done
+
 #answer the questions for iptables persistent
-echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
-echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
+iptables-save > /etc/iptables/rules.v4
+ip6tables-save > /etc/iptables/rules.v6
 
 sed -i /etc/postgresql/9.4/main/postgresql.conf -e s:'snakeoil.key:snakeoil-postgres.key:'
 cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/private/ssl-cert-snakeoil-postgres.key
