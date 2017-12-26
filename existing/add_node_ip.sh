@@ -6,7 +6,7 @@ thisip=$(hostname -I | cut -d ' ' -f1)
 read -p "Total Number of Nodes Adding: " totalnode
 
 
-ip[1]=$thisip
+#ip[1]=$thisip
 
 nodenumber=$(($totalnode))
 c=2
