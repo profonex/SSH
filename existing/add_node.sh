@@ -20,10 +20,6 @@ do
 done
 
 read -p "Node IP you want to connect to: " near_node
-#read -p "What is the FQDN of this Node: " domainname
-#read -p "Username for this Node: " username
-#read -p "Password for this Node: " userpass
-#read -p "What is your email address: " email_address
 
 sed "s@127.0.1.1@127.0.0.1@g" -i /etc/hosts
 
@@ -32,20 +28,9 @@ database_host=127.0.0.1
 database_port=5432
 database_username=fusionpbx
 
-# apt-get update && apt-get upgrade -y --force-yes && apt-get install -y --force-yes git  && cd /usr/src && git clone https://github.com/fusionpbx/fusionpbx-install.sh.git && chmod 755 -R /usr/src/fusionpbx-install.sh && cd /usr/src/fusionpbx-install.sh/debian
 
-# sed '16,19 s/^/#/' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
-#sed '22,27 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/postgres.sh
-
-#sed '25,45 s/^#//' -i /usr/src/fusionpbx-install.sh/debian/resources/fail2ban/jail.local
-
-# ./install.sh && rm /etc/fusionpbx/config.php
 rm /etc/fusionpbx/config.php
 
-#echo 'deb http://packages.2ndquadrant.com/bdr/apt/ jessie-2ndquadrant main' > /etc/apt/sources.list.d/2ndquadrant.list
-#wget --quiet -O - http://packages.2ndquadrant.com/bdr/apt/AA7A6805.asc | sudo apt-key add -
-#sudo apt-get update
-#sudo apt-get install -y postgresql-9.6-bdr-plugin
 
 for i in $(seq $totalnode)
 do
@@ -117,7 +102,6 @@ sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_group_join(local_node_name
 sudo -u postgres psql -d fusionpbx -c "SELECT bdr.bdr_node_join_wait_for_ready();"
 sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_group_join(local_node_name := '$nodename', node_external_dsn := 'host=$thisip port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1', join_using_dsn := 'host=$near_node port=5432 dbname=freeswitch connect_timeout=10 keepalives_idle=5 keepalives_interval=1');"
 sudo -u postgres psql -d freeswitch -c "SELECT bdr.bdr_node_join_wait_for_ready();"
-#sudo -u postgres psql -d freeswitch -f /var/www/fusionpbx/resources/install/sql/switch.sql -L /tmp/sql.log
 
 
 #restart freeswitch
