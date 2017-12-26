@@ -9,7 +9,7 @@ read -p "Total Number of Nodes Adding: " totalnode
 #ip[1]=$thisip
 
 nodenumber=$(($totalnode))
-c=2
+c=1
 for i in $(seq $nodenumber);
 do
     read -p "Node $(($i+1)) IP Address: " ipadd;
