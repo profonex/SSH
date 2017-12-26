@@ -4,13 +4,13 @@ thisip=$(hostname -I | cut -d ' ' -f1)
 
 
 read -p "Total Number of Nodes Adding: " totalnode
+read -p "Node IP Address: " thisip
 
 
-#ip[1]=$thisip
+ip[1]=$thisip
 
-nodenumber=$(($totalnode))
-c=1
-i=0
+nodenumber=$(($totalnode-1))
+c=2
 for i in $(seq $nodenumber);
 do
     read -p "Node $(($i+1)) IP Address: " ipadd;
