@@ -140,7 +140,7 @@ chown -R www-data:www-data /var/backups/fusionpbx/pbx
 
 rm -rf /var/lib/freeswitch/recordings/*
 rm -rf /var/lib/freeswitch/storage/*
-rm -rf /usr/share/freeswitch/*
+rm -rf /usr/share/freeswitch/scripts/*
 rm -rf /etc/freeswitch/*
 rm -rf /var/www/fusionpbx/*
 rm -rf /etc/fusionpbx/*
