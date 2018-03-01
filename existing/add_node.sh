@@ -144,5 +144,6 @@ rm -rf /usr/share/freeswitch/scripts/*
 rm -rf /etc/freeswitch/*
 rm -rf /var/www/fusionpbx/*
 rm -rf /etc/fusionpbx/*
+rm -rf /usr/share/freeswitch/*
 rm -rf /var/www/fusionpbx/.git
 
