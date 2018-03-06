@@ -10,7 +10,7 @@ mkdir -p /var/backups/fusionpbx/postgresql
 mkdir -p /var/backups/fusionpbx/pbx/$pbx
 #delete backups older 3 days
 find /var/backups/fusionpbx/postgresql/fusionpbx_pgsql* -mtime +2 -exec rm {} \;
-find /var/backups/fusionpbx/pbx/$pbx*.tgz -mtime +2 -exec rm {} \;
+find /var/backups/fusionpbx/pbx/$pbx/*.tgz -mtime +2 -exec rm {} \;
 #delete postgres logs older than 7 days
 find /var/log/postgresql/postgresql-9.4-main* -mtime +7 -exec rm {} \;
 #delete freeswitch logs older 3 days
